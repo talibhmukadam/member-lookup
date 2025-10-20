@@ -29,9 +29,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install libwoff2dec0
-        run: sudo apt-get update && sudo apt-get install -y libwoff2dec0
-
       - name: Restore npm cache
         id: npm-cache
         uses: actions/cache@v4
@@ -46,6 +43,7 @@ jobs:
         run: npm ci
 
       - name: Restore Playwright browser cache
+        if: matrix.project != 'webkit-mobile'
         id: pw-cache
         uses: actions/cache@v4
         with:
