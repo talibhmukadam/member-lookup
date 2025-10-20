@@ -12,6 +12,11 @@ permissions:
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   test:
     name: Run Playwright (${{ matrix.project }})
@@ -102,7 +107,7 @@ jobs:
           HTML
           for dir in playwright-report-*; do
             name=${dir#playwright-report-}
-            echo "              <li><a href=\"$dir/index.html\">$name</a></li>" >> index.html
+            echo "      <li><a href=\"$dir/index.html\">$name</a></li>" >> index.html
           done
           cat <<'HTML' >> index.html
             </ul>
@@ -114,20 +119,19 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: reports
-          name: github-pages
 
   deploy:
     name: Deploy GitHub Pages
     runs-on: ubuntu-latest
     needs: publish-report
-    if: needs.publish-report.result == 'success'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 
       - name: Add report link to summary
         if: always()
