@@ -115,32 +115,32 @@ jobs:
         with:
           path: reports
 
-  deploy:
-    name: Deploy GitHub Pages
-    runs-on: ubuntu-latest
-    needs: publish-report
-    if: github.event_name == 'push'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+deploy:
+  name: Deploy GitHub Pages
+  runs-on: ubuntu-latest
+  needs: publish-report
+  if: needs.publish-report.result == 'success'
+  environment:
+    name: github-pages
+    url: ${{ steps.deployment.outputs.page_url }}
+  steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
 
-      - name: Add report link to summary
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const url = process.env.REPORT_URL;
-            if (!url) {
-              core.warning('Playwright report URL unavailable.');
-            } else {
-              await core.summary
-                .addHeading('Playwright HTML Report')
-                .addLink('View the combined HTML report', url)
-                .write();
-            }
-        env:
-          REPORT_URL: ${{ steps.deployment.outputs.page_url }}
+    - name: Add report link to summary
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const url = process.env.REPORT_URL;
+          if (!url) {
+            core.warning('Playwright report URL unavailable.');
+          } else {
+            await core.summary
+              .addHeading('Playwright HTML Report')
+              .addLink('View the combined HTML report', url)
+              .write();
+          }
+      env:
+        REPORT_URL: ${{ steps.deployment.outputs.page_url }}
